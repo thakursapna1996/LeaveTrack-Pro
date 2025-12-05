@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeaveTrack-Pro - {% block title %}Dashboard{% endblock %}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f6f9; color: #333; }
+        .header { background: #1a365d; color: white; padding: 20px 40px; }
+        .header h1 { font-size: 24px; }
+        .header p { font-size: 12px; opacity: 0.8; }
+        nav { background: #2d4a6f; padding: 0 40px; }
+        nav a { display: inline-block; padding: 15px 20px; color: white; text-decoration: none; font-size: 14px; }
+        nav a:hover { background: #1a365d; }
+        .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+        .card { background: white; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 30px; }
+        .card h2 { font-size: 20px; color: #1a365d; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { background: #1a365d; color: white; padding: 12px 15px; text-align: left; font-size: 13px; }
+        td { padding: 12px 15px; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+        tr:hover { background: #f7fafc; }
+        .btn { display: inline-block; padding: 8px 16px; font-size: 13px; text-decoration: none; border: none; border-radius: 3px; cursor: pointer; }
+        .btn-primary { background: #1a365d; color: white; }
+        .btn-primary:hover { background: #2d4a6f; }
+        .btn-secondary { background: #e2e8f0; color: #333; }
+        .btn-secondary:hover { background: #cbd5e0; }
+        .btn-danger { background: #c53030; color: white; }
+        .btn-danger:hover { background: #9b2c2c; }
+        .btn-sm { padding: 5px 10px; font-size: 12px; margin-right: 3px; }
+        label { display: block; margin-top: 15px; margin-bottom: 5px; font-weight: 500; color: #4a5568; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 3px; font-size: 14px; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #1a365d; }
+        button[type="submit"] { margin-top: 20px; padding: 12px 30px; background: #1a365d; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button[type="submit"]:hover { background: #2d4a6f; }
+        .flash-error { background: #fed7d7; color: #c53030; padding: 12px; border-left: 4px solid #c53030; margin-bottom: 15px; }
+        .flash-success { background: #c6f6d5; color: #276749; padding: 12px; border-left: 4px solid #276749; margin-bottom: 15px; }
+        .status-pending { background: #feebc8; color: #c05621; padding: 4px 10px; border-radius: 3px; font-size: 12px; }
+        .status-approved { background: #c6f6d5; color: #276749; padding: 4px 10px; border-radius: 3px; font-size: 12px; }
+        .status-rejected { background: #fed7d7; color: #c53030; padding: 4px 10px; border-radius: 3px; font-size: 12px; }
+        .back-link { display: inline-block; margin-top: 20px; color: #1a365d; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>LeaveTrack-Pro</h1>
+        <p>Employee Leave Management System</p>
+    </div>
+    <nav>
+        <a href="/">Dashboard</a>
+        <a href="/add">Apply for Leave</a>
+    </nav>
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <div class="card">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</body>
+</html>

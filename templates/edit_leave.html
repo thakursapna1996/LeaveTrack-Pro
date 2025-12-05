@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Leave{% endblock %}
+
+{% block content %}
+<h2>Edit Leave Request #{{ leave.id }}</h2>
+
+<form method="POST">
+    <label>Employee Name *</label>
+    <input type="text" name="employee_name" required value="{{ leave.employee_name }}">
+
+    <label>Email *</label>
+    <input type="email" name="email" required value="{{ leave.email }}">
+
+    <label>Leave Type *</label>
+    <select name="leave_type" required>
+        <option value="">-- Select --</option>
+        <option value="Annual Leave" {% if leave.leave_type == 'Annual Leave' %}selected{% endif %}>Annual Leave</option>
+        <option value="Sick Leave" {% if leave.leave_type == 'Sick Leave' %}selected{% endif %}>Sick Leave</option>
+        <option value="Personal Leave" {% if leave.leave_type == 'Personal Leave' %}selected{% endif %}>Personal Leave</option>
+        <option value="Maternity Leave" {% if leave.leave_type == 'Maternity Leave' %}selected{% endif %}>Maternity Leave</option>
+        <option value="Paternity Leave" {% if leave.leave_type == 'Paternity Leave' %}selected{% endif %}>Paternity Leave</option>
+        <option value="Unpaid Leave" {% if leave.leave_type == 'Unpaid Leave' %}selected{% endif %}>Unpaid Leave</option>
+    </select>
+
+    <label>Start Date *</label>
+    <input type="date" name="start_date" required value="{{ leave.start_date.strftime('%Y-%m-%d') }}">
+
+    <label>End Date *</label>
+    <input type="date" name="end_date" required value="{{ leave.end_date.strftime('%Y-%m-%d') }}">
+
+    <label>Reason *</label>
+    <textarea name="reason" rows="4" required>{{ leave.reason }}</textarea>
+
+    {% if session.role == 'admin' %}
+    <label>Status (Admin Only)</label>
+    <select name="status">
+        <option value="Pending" {% if leave.status == 'Pending' %}selected{% endif %}>Pending</option>
+        <option value="Approved" {% if leave.status == 'Approved' %}selected{% endif %}>Approved</option>
+        <option value="Rejected" {% if leave.status == 'Rejected' %}selected{% endif %}>Rejected</option>
+    </select>
+    {% endif %}
+
+    <button type="submit">Update</button>
+</form>
+
+<a href="/" class="back-link">← Back to Dashboard</a>
+{% endblock %}

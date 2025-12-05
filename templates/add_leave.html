@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}Apply for Leave{% endblock %}
+
+{% block content %}
+<h2>Apply for Leave</h2>
+
+<form method="POST">
+    <label>Employee Name *</label>
+    <input type="text" name="employee_name" required minlength="2" placeholder="Enter your full name">
+
+    <label>Email *</label>
+    <input type="email" name="email" required placeholder="Enter your email">
+
+    <label>Leave Type *</label>
+    <select name="leave_type" required>
+        <option value="">-- Select Leave Type --</option>
+        <option value="Annual Leave">Annual Leave</option>
+        <option value="Sick Leave">Sick Leave</option>
+        <option value="Personal Leave">Personal Leave</option>
+        <option value="Maternity Leave">Maternity Leave</option>
+        <option value="Paternity Leave">Paternity Leave</option>
+        <option value="Unpaid Leave">Unpaid Leave</option>
+    </select>
+
+    <label>Start Date *</label>
+    <input type="date" name="start_date" required>
+
+    <label>End Date *</label>
+    <input type="date" name="end_date" required>
+
+    <label>Reason *</label>
+    <textarea name="reason" rows="4" required minlength="10" placeholder="Reason for leave (min 10 characters)"></textarea>
+
+    <button type="submit">Submit Request</button>
+</form>
+
+<a href="/" class="back-link">← Back to Dashboard</a>
+{% endblock %}

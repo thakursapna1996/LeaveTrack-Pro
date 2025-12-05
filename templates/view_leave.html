@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}View Leave{% endblock %}
+
+{% block content %}
+<h2>Leave Request #{{ leave.id }}</h2>
+
+<table>
+    <tr><th style="width:150px;">Field</th><th>Details</th></tr>
+    <tr><td><strong>Employee</strong></td><td>{{ leave.employee_name }}</td></tr>
+    <tr><td><strong>Email</strong></td><td>{{ leave.email }}</td></tr>
+    <tr><td><strong>Leave Type</strong></td><td>{{ leave.leave_type }}</td></tr>
+    <tr><td><strong>From</strong></td><td>{{ leave.start_date.strftime('%Y-%m-%d') }}</td></tr>
+    <tr><td><strong>To</strong></td><td>{{ leave.end_date.strftime('%Y-%m-%d') }}</td></tr>
+    <tr><td><strong>Reason</strong></td><td>{{ leave.reason }}</td></tr>
+    <tr><td><strong>Status</strong></td><td><span class="status-{{ leave.status.lower() }}">{{ leave.status }}</span></td></tr>
+    <tr><td><strong>Submitted</strong></td><td>{{ leave.created_at.strftime('%Y-%m-%d %H:%M') }}</td></tr>
+</table>
+
+<div style="margin-top: 20px;">
+    {% if session.role == 'admin' or (leave.status == 'Pending' and leave.submitted_by == session.username) %}
+        <a href="/edit/{{ leave.id }}" class="btn btn-primary">Edit</a>
+    {% endif %}
+    <a href="/" class="btn btn-secondary">Back</a>
+</div>
+{% endblock %}
