@@ -1,7 +1,3 @@
-# LeaveTrack-Pro Dependencies
-# Python Flask Web Application
-# Updated for Python 3.13 compatibility
-
 Flask==3.0.0
 Flask-SQLAlchemy==3.1.1
 Werkzeug==3.0.1
