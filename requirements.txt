@@ -1,5 +1,28 @@
+# ==============================================
+# LeaveTrack-Pro - Python Dependencies
+# ==============================================
+# 
+# This file lists all Python packages needed to run the app.
+# Install with: pip install -r requirements.txt
+#
+# ==============================================
+
+# Flask - The web framework (like Django but simpler)
+# Handles routes, templates, requests
 Flask==2.3.3
+
+# Flask-SQLAlchemy - Database integration for Flask
+# Makes it easy to work with databases
 Flask-SQLAlchemy==3.0.5
+
+# SQLAlchemy - The database ORM (Object Relational Mapper)
+# Lets us use Python code instead of SQL queries
 SQLAlchemy==2.0.21
+
+# Werkzeug - WSGI utility library
+# Used by Flask for request/response handling
 Werkzeug==2.3.7
+
+# Gunicorn - Production web server
+# Used to run Flask in production (instead of development server)
 gunicorn==21.2.0

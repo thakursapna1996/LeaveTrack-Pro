@@ -1,28 +1,68 @@
-// LeaveTrack-Pro CI/CD Pipeline
-// This Jenkinsfile defines the complete CI/CD pipeline
+/*
+==============================================
+LeaveTrack-Pro - CI/CD Pipeline (Jenkinsfile)
+==============================================
+
+What is this file?
+- This file defines the CI/CD (Continuous Integration/Continuous Deployment) pipeline
+- Jenkins reads this file and automatically runs these steps
+- When you push code to GitHub, Jenkins will automatically build and deploy
+
+What is CI/CD?
+- CI (Continuous Integration): Automatically test code when pushed
+- CD (Continuous Deployment): Automatically deploy code to server
+
+Pipeline Stages:
+1. Checkout    - Download code from GitHub
+2. Build       - Install dependencies (Flask, etc.)
+3. Security    - Scan for vulnerabilities
+4. Docker      - Create container image
+5. Deploy      - Run the application
+6. Health      - Check if app is working
+
+==============================================
+*/
 
 pipeline {
+    // Run on any available Jenkins agent/server
     agent any
 
+    // Environment variables (settings used throughout the pipeline)
     environment {
-        APP_NAME = 'leavetrack-pro'
-        DOCKER_IMAGE = 'leavetrack-pro'
-        DOCKER_TAG = "${BUILD_NUMBER}"
+        APP_NAME = 'leavetrack-pro'           // Name of our application
+        DOCKER_IMAGE = 'leavetrack-pro'       // Docker image name
+        DOCKER_TAG = "${BUILD_NUMBER}"        // Tag with build number (v1, v2, etc.)
     }
 
+    // The actual pipeline stages
     stages {
-        // Stage 1: Checkout code from repository
+        
+        /*
+        ========================================
+        STAGE 1: CHECKOUT
+        ========================================
+        Purpose: Download the latest code from GitHub
+        What happens: Jenkins pulls your code from the repository
+        */
         stage('Checkout') {
             steps {
-                echo 'Checking out source code...'
-                checkout scm
+                echo 'Step 1: Downloading code from GitHub...'
+                checkout scm  // scm = Source Code Management (GitHub)
             }
         }
 
-        // Stage 2: Install dependencies and run tests
+        /*
+        ========================================
+        STAGE 2: BUILD
+        ========================================
+        Purpose: Install all required Python packages
+        What happens: 
+        - Creates a virtual environment
+        - Installs Flask, SQLAlchemy, etc. from requirements.txt
+        */
         stage('Build') {
             steps {
-                echo 'Installing dependencies...'
+                echo 'Step 2: Installing Python dependencies...'
                 sh '''
                     python3 -m venv venv
                     . venv/bin/activate
@@ -31,25 +71,47 @@ pipeline {
             }
         }
 
-        // Stage 3: Run security checks
+        /*
+        ========================================
+        STAGE 3: SECURITY SCAN
+        ========================================
+        Purpose: Check code for security vulnerabilities
+        What happens:
+        - Safety: Checks if any Python packages have known vulnerabilities
+        - Bandit: Scans Python code for security issues
+        
+        This is important for DevSecOps!
+        */
         stage('Security Scan') {
             steps {
-                echo 'Running security checks...'
+                echo 'Step 3: Running security checks...'
                 sh '''
                     . venv/bin/activate
                     pip install safety bandit
-                    # Check for known vulnerabilities in dependencies
+                    
+                    # Check for vulnerable packages
+                    # || true means "continue even if errors found"
                     safety check -r requirements.txt || true
-                    # Static code analysis for security issues
+                    
+                    # Scan code for security issues
                     bandit -r . -f txt || true
                 '''
             }
         }
 
-        // Stage 4: Build Docker image
+        /*
+        ========================================
+        STAGE 4: DOCKER BUILD
+        ========================================
+        Purpose: Package the application into a Docker container
+        What happens:
+        - Reads the Dockerfile
+        - Creates a container image with our app inside
+        - Tags it with version number
+        */
         stage('Docker Build') {
             steps {
-                echo 'Building Docker image...'
+                echo 'Step 4: Building Docker container...'
                 sh '''
                     docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
                     docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest
@@ -57,32 +119,43 @@ pipeline {
             }
         }
 
-        // Stage 5: Push to Docker Registry (for cloud deployment)
+        /*
+        ========================================
+        STAGE 5: DOCKER PUSH (Optional)
+        ========================================
+        Purpose: Upload Docker image to a registry (like Docker Hub)
+        Note: This is commented out - uncomment when you have a registry
+        */
         stage('Docker Push') {
             steps {
-                echo 'Pushing Docker image to registry...'
-                // Uncomment and configure for your registry
-                // withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                //     sh '''
-                //         echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                //         docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
-                //         docker push ${DOCKER_IMAGE}:latest
-                //     '''
+                echo 'Step 5: Pushing Docker image to registry...'
+                echo 'Note: Configure your Docker registry credentials here'
+                // Uncomment below when you have Docker Hub credentials:
+                // withCredentials([usernamePassword(credentialsId: 'docker-hub', ...)]) {
+                //     sh 'docker push ${DOCKER_IMAGE}:${DOCKER_TAG}'
                 // }
-                echo 'Docker push stage - configure with your registry credentials'
             }
         }
 
-        // Stage 6: Deploy to cloud
+        /*
+        ========================================
+        STAGE 6: DEPLOY
+        ========================================
+        Purpose: Start the application
+        What happens:
+        - Stops any old version running
+        - Starts the new version in a Docker container
+        - App becomes accessible on port 5000
+        */
         stage('Deploy') {
             steps {
-                echo 'Deploying application...'
+                echo 'Step 6: Deploying application...'
                 sh '''
-                    # Stop existing container if running
+                    # Stop old container if running
                     docker stop ${APP_NAME} || true
                     docker rm ${APP_NAME} || true
                     
-                    # Run new container
+                    # Start new container
                     docker run -d \
                         --name ${APP_NAME} \
                         -p 5000:5000 \
@@ -92,10 +165,19 @@ pipeline {
             }
         }
 
-        // Stage 7: Health check / Monitoring
+        /*
+        ========================================
+        STAGE 7: HEALTH CHECK
+        ========================================
+        Purpose: Verify the application is running correctly
+        What happens:
+        - Waits 10 seconds for app to start
+        - Calls the /health endpoint
+        - If it responds, deployment is successful!
+        */
         stage('Health Check') {
             steps {
-                echo 'Running health check...'
+                echo 'Step 7: Checking if application is healthy...'
                 sh '''
                     sleep 10
                     curl -f http://localhost:5000/health || exit 1
@@ -104,18 +186,25 @@ pipeline {
         }
     }
 
+    /*
+    ========================================
+    POST ACTIONS
+    ========================================
+    These run after all stages complete
+    */
     post {
+        // If everything succeeded
         success {
-            echo 'Pipeline completed successfully!'
+            echo '✅ SUCCESS: Pipeline completed! Application is deployed.'
         }
+        // If something failed
         failure {
-            echo 'Pipeline failed! Check the logs for details.'
+            echo '❌ FAILED: Pipeline failed. Check the logs above for errors.'
         }
+        // Always run this (success or failure)
         always {
-            echo 'Cleaning up...'
-            // Clean up old Docker images
+            echo 'Cleaning up old Docker images...'
             sh 'docker image prune -f || true'
         }
     }
 }
-
