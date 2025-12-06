@@ -1,23 +1,21 @@
 """
-LeaveTrack-Pro: A Simple Leave Management System
-For Elastic Beanstalk deployment
+LeaveTrack-Pro - Leave Management System
+For AWS Elastic Beanstalk Deployment
 """
-
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import os
 
-# Initialize Flask app - Elastic Beanstalk looks for 'application'
+# Elastic Beanstalk looks for 'application'
 application = Flask(__name__)
-application.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key')
+application.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'leavetrack-secret-key')
 application.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///leaves.db'
 application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(application)
 
 
-# Database Model
 class LeaveRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     employee_name = db.Column(db.String(100), nullable=False)
@@ -30,19 +28,16 @@ class LeaveRequest(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
-# Create tables
 with application.app_context():
     db.create_all()
 
 
-# HOME - View all leaves
 @application.route('/')
 def index():
     leaves = LeaveRequest.query.order_by(LeaveRequest.created_at.desc()).all()
     return render_template('index.html', leaves=leaves)
 
 
-# CREATE - Add leave
 @application.route('/add', methods=['GET', 'POST'])
 def add_leave():
     if request.method == 'POST':
@@ -53,7 +48,6 @@ def add_leave():
         end_date = request.form.get('end_date', '')
         reason = request.form.get('reason', '').strip()
 
-        # Validation
         errors = []
         if not employee_name or len(employee_name) < 2:
             errors.append('Employee name must be at least 2 characters')
@@ -63,14 +57,6 @@ def add_leave():
             errors.append('Please select leave type')
         if not start_date or not end_date:
             errors.append('Please select dates')
-        else:
-            try:
-                start = datetime.strptime(start_date, '%Y-%m-%d').date()
-                end = datetime.strptime(end_date, '%Y-%m-%d').date()
-                if end < start:
-                    errors.append('End date cannot be before start date')
-            except:
-                errors.append('Invalid date')
         if not reason or len(reason) < 10:
             errors.append('Reason must be at least 10 characters')
 
@@ -79,34 +65,40 @@ def add_leave():
                 flash(error, 'error')
             return render_template('add_leave.html')
 
-        new_leave = LeaveRequest(
-            employee_name=employee_name,
-            email=email,
-            leave_type=leave_type,
-            start_date=start,
-            end_date=end,
-            reason=reason
-        )
-        db.session.add(new_leave)
-        db.session.commit()
-        flash('Leave request submitted!', 'success')
-        return redirect(url_for('index'))
+        try:
+            start = datetime.strptime(start_date, '%Y-%m-%d').date()
+            end = datetime.strptime(end_date, '%Y-%m-%d').date()
+            if end < start:
+                flash('End date cannot be before start date', 'error')
+                return render_template('add_leave.html')
+
+            new_leave = LeaveRequest(
+                employee_name=employee_name,
+                email=email,
+                leave_type=leave_type,
+                start_date=start,
+                end_date=end,
+                reason=reason
+            )
+            db.session.add(new_leave)
+            db.session.commit()
+            flash('Leave request submitted!', 'success')
+            return redirect(url_for('index'))
+        except Exception as e:
+            flash('Error submitting request', 'error')
 
     return render_template('add_leave.html')
 
 
-# READ - View single leave
 @application.route('/view/<int:id>')
 def view_leave(id):
     leave = LeaveRequest.query.get_or_404(id)
     return render_template('view_leave.html', leave=leave)
 
 
-# UPDATE - Edit leave
 @application.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit_leave(id):
     leave = LeaveRequest.query.get_or_404(id)
-
     if request.method == 'POST':
         leave.employee_name = request.form.get('employee_name', '').strip()
         leave.email = request.form.get('email', '').strip()
@@ -115,15 +107,12 @@ def edit_leave(id):
         leave.end_date = datetime.strptime(request.form.get('end_date'), '%Y-%m-%d').date()
         leave.reason = request.form.get('reason', '').strip()
         leave.status = request.form.get('status', 'Pending')
-
         db.session.commit()
         flash('Leave updated!', 'success')
         return redirect(url_for('index'))
-
     return render_template('edit_leave.html', leave=leave)
 
 
-# DELETE - Remove leave
 @application.route('/delete/<int:id>', methods=['POST'])
 def delete_leave(id):
     leave = LeaveRequest.query.get_or_404(id)
@@ -133,7 +122,6 @@ def delete_leave(id):
     return redirect(url_for('index'))
 
 
-# Health check
 @application.route('/health')
 def health():
     return {'status': 'healthy', 'app': 'LeaveTrack-Pro'}, 200
@@ -141,4 +129,3 @@ def health():
 
 if __name__ == '__main__':
     application.run(debug=True)
-
